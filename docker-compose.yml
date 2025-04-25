@@ -1,0 +1,20 @@
+networks:
+  dev:
+    driver: bridge
+
+services:
+  backend-hedgie-agent:
+    build: .
+    container_name: ${BACKEND_CONTAINER_NAME:-backend}
+    networks:
+      - dev
+    environment:
+      WEBAPP_PORT: ${WEBAPP_PORT}
+    ports:
+      - "${WEBAPP_PORT}:${WEBAPP_PORT}"
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

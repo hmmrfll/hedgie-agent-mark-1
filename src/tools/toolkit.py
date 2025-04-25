@@ -20,11 +20,11 @@ from .ollama_handler import OllamaHandler
 
 class ToolKit:
     """Набор инструментов для агента"""
-    
+
     def __init__(self, telegram_token: str = None, telegram_chat_ids: List[str] = None):
         # Инициализация всех инструментов
         self.db_connector = DatabaseConnector(
-            host="localhost",
+            host="195.54.178.243",
             port=5433,
             database="deribit_trades",
             user="admin",
@@ -47,7 +47,7 @@ class ToolKit:
 
         if telegram_token and telegram_chat_ids:
             self.telegram_notifier = TelegramNotifier(telegram_token, telegram_chat_ids)
-        
+
 
 
     def get_trades(self, currency: str, days: int) -> Dict[str, Any]:
@@ -73,7 +73,7 @@ class ToolKit:
     def get_strategy(self, trades: List[Dict[str, Any]]) -> str:
         """Определение стратегии"""
         return self.trade_grouper.get_block_strategy(trades)
-    
+
     def analyze_strategies(self, trades: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Анализ стратегий"""
         return self.strategy_analyzer.analyze_strategies(trades)
@@ -85,7 +85,7 @@ class ToolKit:
     def get_strategy_description(self, strategy_type: str) -> str:
         """Получение описания стратегии"""
         return self.strategy_analyzer.get_strategy_description(strategy_type)
-    
+
     def get_news(self, currency: str, days: int) -> Dict[str, Any]:
         """Получение новостей"""
         return self.news_analyzer.get_news(currency, days)
@@ -93,49 +93,49 @@ class ToolKit:
     def analyze_news(self, articles: List[Dict], currency: str) -> Dict[str, Any]:
         """Анализ новостей"""
         return self.news_analyzer.analyze_sentiment(articles, currency)
-    
+
     def analyze_sentiment(self, articles: List[Dict], currency: str) -> Dict[str, Any]:
         """Анализ тональности текста с BERT"""
         return self.sentiment_analyzer.analyze_news(articles, currency)
-    
+
     def get_historical_data(self, currency: str, days: int, interval: str = '1d') -> Dict[str, Any]:
         """Получение исторических данных"""
         return self.price_data_fetcher.get_historical_data(currency, days, interval)
-    
+
     def calculate_rsi(self, prices, window=14):
         """Расчет RSI"""
         return self.technical_indicators.calculate_rsi(prices, window)
-    
+
     def calculate_sma(self, prices, window):
         """Расчет SMA"""
         return self.technical_indicators.calculate_sma(prices, window)
-    
+
     def calculate_ema(self, prices, window):
         """Расчет EMA"""
         return self.technical_indicators.calculate_ema(prices, window)
-    
+
     def calculate_macd(self, prices, fast_period=12, slow_period=26, signal_period=9):
         """Расчет MACD"""
         return self.technical_indicators.calculate_macd(prices, fast_period, slow_period, signal_period)
-    
+
     def calculate_bollinger_bands(self, prices, window=20, num_std=2):
         """Расчет полос Боллинджера"""
         return self.technical_indicators.calculate_bollinger_bands(prices, window, num_std)
-    
+
     def calculate_var_monte_carlo(self, returns, confidence_level=0.95, simulations=10000, time_horizon=1):
         """Расчет Value at Risk (VaR) методом Монте-Карло"""
         return self.risk_calculator.calculate_var_monte_carlo(
             returns, confidence_level, simulations, time_horizon
         )
-    
+
     def calculate_volatility(self, returns):
         """Расчет волатильности"""
         return self.risk_calculator.calculate_volatility(returns)
-    
+
     def calculate_sharpe_ratio(self, returns, risk_free_rate=0.0):
         """Расчет коэффициента Шарпа"""
         return self.risk_calculator.calculate_sharpe_ratio(returns, risk_free_rate)
-    
+
     def calculate_position_size(self, capital, max_risk_percent, stop_loss_percent, volatility_percent):
         """Расчет оптимального размера позиции"""
         return self.risk_calculator.calculate_position_size(
@@ -148,23 +148,23 @@ class ToolKit:
     def generate_latex_report(self, data, template_path=None):
         """Генерация отчета в формате LaTeX"""
         return self.report_generator.generate_latex_report(data, template_path)
-    
+
     def generate_charts(self, data):
         """Генерация графиков для отчета"""
         return self.report_generator.generate_charts(data)
-    
+
     def send_telegram_message(self, message: str) -> bool:
         """Отправка сообщения в Telegram"""
         if self.telegram_notifier:
             return self.telegram_notifier.send_message(message)
         return False
-    
+
     def send_telegram_report(self, analysis_data: Dict[str, Any]) -> bool:
         """Отправка отчета в Telegram"""
         if self.telegram_notifier:
             return self.telegram_notifier.send_analysis_report(analysis_data)
         return False
-    
+
     def ask_gpt(self, question: str, analysis_data: Dict[str, Any]) -> str:
         """Получение ответа от GPT"""
         if hasattr(self, 'gpt_handler') and self.gpt_handler:
