@@ -1,38 +1,61 @@
-# Data Processing & Analysis
-pandas==2.2.0
-numpy==1.26.3
-scipy==1.12.0
-
-# Database
-psycopg2-binary==2.9.9
-
-# API Integration
-requests==2.31.0
+aiolimiter==1.1.1
+annotated-types==0.7.0
+anyio==4.9.0
+APScheduler==3.6.3
+cachetools==4.2.2
+certifi==2025.1.31
+cffi==1.17.1
+charset-normalizer==3.4.1
+contourpy==1.3.2
+cryptography==44.0.2
+cycler==0.12.1
+distro==1.9.0
+filelock==3.18.0
+fonttools==4.57.0
+fsspec==2025.3.2
+h11==0.16.0
+h2==4.2.0
+hpack==4.1.0
+httpcore==1.0.9
+httpx==0.25.2
+huggingface-hub==0.30.2
+hyperframe==6.1.0
+idna==3.10
+Jinja2==3.1.6
+jiter==0.9.0
+kiwisolver==1.4.8
+MarkupSafe==3.0.2
+matplotlib==3.10.1
+numpy==2.2.5
+openai==1.76.0
+packaging==25.0
+pandas==2.2.3
+pillow==11.2.1
+psycopg2==2.9.10
+pycparser==2.22
+pydantic==2.11.3
+pydantic_core==2.33.1
+pyparsing==3.2.3
+python-dateutil==2.9.0.post0
 python-telegram-bot==20.7
-
-# Machine Learning & NLP
-transformers==4.36.2
-torch==2.1.2
-scikit-learn==1.4.0
-
-# Financial Tools
-QuantLib==1.32
-
-# Technical Analysis
-ta-lib==0.4.28
-
-# Data Visualization
-matplotlib==3.8.2
-seaborn==0.13.1
-
-# Template Engine
-Jinja2==3.1.3
-
-# Utilities
-python-dotenv==1.0.0
-pytz==2024.1
-
-# Development Tools
-black==24.1.1
-pylint==3.0.3
-pytest==7.4.4
+pytz==2025.2
+PyYAML==6.0.2
+regex==2024.11.6
+requests==2.32.3
+safetensors==0.5.3
+scipy==1.15.2
+seaborn==0.13.2
+setuptools==79.0.1
+six==1.17.0
+sniffio==1.3.1
+socksio==1.0.0
+telegram==0.0.1
+tokenizers==0.21.1
+tornado==6.3.3
+tqdm==4.67.1
+transformers==4.51.3
+typing-inspection==0.4.0
+typing_extensions==4.13.2
+tzdata==2025.2
+tzlocal==5.3.1
+urllib3==1.26.15

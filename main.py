@@ -20,15 +20,15 @@ def main():
             telegram_token=TELEGRAM_TOKEN,
             telegram_chat_ids=None  # Бот будет отвечать всем
         )
-        
+
         # Инициализация и запуск Telegram-бота
         bot = TelegramBot(token=TELEGRAM_TOKEN)
         bot.set_agent(agent)
-        
+
         logger.info("Запуск Telegram бота...")
         # Запускаем бота
         bot.application.run_polling()
-        
+
     except KeyboardInterrupt:
         logger.info("Получен сигнал завершения.")
     except Exception as e:
