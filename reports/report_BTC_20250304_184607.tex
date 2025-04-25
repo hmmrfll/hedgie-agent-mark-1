@@ -1,0 +1,105 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+\title{Аналитический отчет по криптовалюте {{currency}}}
+\author{Торговый агент Hedgie v1.0}
+\date{{{report_date}}}
+
+\begin{document}
+
+\maketitle
+
+\section{Резюме}
+\begin{itemize}
+    \item Валюта: {{currency}}
+    \item Анализируемый период: {{days}} дней
+    \item Текущая цена: \${{current_price}}
+    \item Рекомендация: \textbf{{{recommendation}}}
+    \item Уровень риска: {{risk_level}}
+\end{itemize}
+
+% Добавляем график цены, если он есть
+{% if price_chart %}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{{{price_chart}}}
+    \caption{Динамика цены {{currency}} за последние {{days}} дней}
+    \label{fig:price}
+\end{figure}
+{% endif %}
+
+\section{Анализ опционов}
+\begin{itemize}
+    \item Всего опционных сделок: {{total_trades}}
+    \item CALL/PUT соотношение: {{call_put_ratio}}
+    \item Общая дельта: {{total_delta}}
+    \item Основные стратегии: {{main_strategies}}
+\end{itemize}
+
+% Добавляем график распределения стратегий, если он есть
+{% if strategies_chart %}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{{{strategies_chart}}}
+    \caption{Распределение опционных стратегий по объему}
+    \label{fig:strategies}
+\end{figure}
+{% endif %}
+
+\section{Технический анализ}
+\begin{itemize}
+    \item Текущий тренд: {{trend}}
+    \item RSI (индекс относительной силы): {{rsi_value}} ({{rsi_signal}})
+    \item MACD: {{macd_signal}}
+    \item Общий технический сигнал: {{technical_signal}}
+\end{itemize}
+
+% Добавляем график RSI, если он есть
+{% if rsi_chart %}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{{{rsi_chart}}}
+    \caption{Динамика индикатора RSI за последние {{days}} дней}
+    \label{fig:rsi}
+\end{figure}
+{% endif %}
+
+\section{Фундаментальный анализ}
+\begin{itemize}
+    \item Проанализировано новостей: {{news_count}}
+    \item Общий новостной фон: {{news_sentiment}}
+    \item Ключевые новости: {{key_news}}
+\end{itemize}
+
+\section{Риск-менеджмент}
+\begin{itemize}
+    \item VaR (95\%): {{var_value}}\\% (максимальный ожидаемый убыток)
+    \item Волатильность: {{volatility}}\\%
+    \item Коэффициент Шарпа: {{sharpe_ratio}}
+    \item Рекомендуемый размер позиции: {{position_size}}\\% от капитала
+    \item Рекомендуемый стоп-лосс: \${{stop_loss_price}} ({{stop_loss_percent}}\\%)
+    \item Рекомендуемый тейк-профит: \${{take_profit_price}} ({{take_profit_percent}}\\%)
+\end{itemize}
+
+\section{Стратегия входа и выхода}
+\begin{itemize}
+    \item Точка входа: {{entry_strategy}}
+    \item Уровень стоп-лосса: \${{stop_loss_price}} ({{stop_loss_percent}}\\%)
+    \item Цель по прибыли: \${{take_profit_price}} ({{take_profit_percent}}\\%)
+    \item Соотношение риск/доходность: 1:{{risk_reward_ratio}}
+\end{itemize}
+
+\section{Заключение}
+{{conclusion}}
+
+\vspace{1cm}
+{\small \textit{Отчет сгенерирован автоматически. Данный отчет не является финансовой рекомендацией.}}
+
+\end{document}
