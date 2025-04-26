@@ -66,31 +66,51 @@ class FundamentalAnalyzer:
 
         self.communicator.say("Анализирую новостной фон...")
 
-        # Безопасно получаем статьи
-        articles = news_data.get('articles', []) or []
-        currency = news_data.get('currency', 'BTC')  # получаем валюту из новостных данных
+        # Безопасно получаем статьи с двойной защитой
+        articles = news_data.get('articles', [])
+        if articles is None:
+            articles = []
+        currency = news_data.get('currency', 'BTC')
 
-        # Стандартный анализ ключевых слов (с проверкой на None)
-        keyword_analysis = self.tools.analyze_news(articles, currency) or {}
+        # Анализ с дополнительными проверками
+        try:
+            # Стандартный анализ ключевых слов
+            keyword_analysis = self.tools.analyze_news(articles, currency)
+            if keyword_analysis is None:
+                keyword_analysis = {}
 
-        # NLP-анализ тональности с BERT (с проверкой на None)
-        self.communicator.say("Выполняю NLP-анализ тональности новостей...")
-        sentiment_analysis = self.tools.analyze_sentiment(articles, currency) or {}
+            # NLP-анализ тональности
+            self.communicator.say("Выполняю NLP-анализ тональности новостей...")
+            sentiment_analysis = self.tools.analyze_sentiment(articles, currency)
+            if sentiment_analysis is None:
+                sentiment_analysis = {}
 
-        # Объединяем результаты анализов с надежными проверками на None
-        analysis = {
-            'status': keyword_analysis.get('status', 'success'),
-            'total_articles': keyword_analysis.get('total_articles', 0),
-            'sources': keyword_analysis.get('sources', {}),
-            'top_articles': keyword_analysis.get('top_articles', []),
-            'sentiment_analysis': sentiment_analysis.get('sentiment_analysis', {})
-        }
+            # Безопасное создание результирующего словаря
+            analysis = {
+                'status': 'success',
+                'total_articles': keyword_analysis.get('total_articles', 0),
+                'sources': keyword_analysis.get('sources', {}),
+                'top_articles': keyword_analysis.get('top_articles', []),
+                'sentiment_analysis': sentiment_analysis.get('sentiment_analysis', {})
+            }
 
-        # Проверяем необходимые ключи
-        if 'sentiment' not in analysis:
-            analysis['sentiment'] = self._determine_sentiment(analysis)
+            # Убедимся, что есть ключ sentiment
+            if 'sentiment' not in analysis:
+                analysis['sentiment'] = self._determine_sentiment(analysis)
 
-        return analysis
+            return analysis
+
+        except Exception as e:
+            logger.error(f"Ошибка при анализе новостей: {e}")
+            return {
+                'status': 'error',
+                'message': f'Ошибка анализа: {str(e)}',
+                'total_articles': len(articles),
+                'sources': {},
+                'top_articles': [],
+                'sentiment': 'neutral',
+                'sentiment_analysis': {}
+            }
 
     def _prepare_results(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Подготовка результатов анализа"""
