@@ -22,11 +22,11 @@ class OptionMetrics:
 
 class OptionsCalculator:
     """Инструмент для расчета опционных параметров"""
-    
+
     def __init__(self, rate: float = 0.05):
         self.rate = rate
 
-    def calculate_delta(self, 
+    def calculate_delta(self,
                        current_price: float,
                        strike: float,
                        expiry_date: datetime,
@@ -56,14 +56,13 @@ class OptionsCalculator:
             T = days_to_expiry / 365.0
 
             if T <= 0:
-                logger.warning("Опцион истек или истекает сегодня")
                 return None
 
             # Приведение волатильности к десятичному формату
             sigma = volatility / 100 if volatility > 1 else volatility
 
             # Расчет d1 по формуле Блэка-Шоулза
-            d1 = (math.log(current_price / strike) + 
+            d1 = (math.log(current_price / strike) +
                   (self.rate + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
 
             # Расчет дельты в зависимости от типа опциона
@@ -89,7 +88,7 @@ class OptionsCalculator:
             logger.error(f"Ошибка расчета дельты: {e}")
             return None
 
-    def validate_inputs(self, 
+    def validate_inputs(self,
                        current_price: float,
                        strike: float,
                        volatility: float) -> bool:
