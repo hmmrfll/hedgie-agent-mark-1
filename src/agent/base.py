@@ -399,13 +399,6 @@ class TradingAgent:
     def process_trades_for_telegram(self, currency: str, days: int) -> Dict[str, Any]:
         """
         Обработка торговых данных для Telegram-бота
-
-        Args:
-            currency: Валюта для анализа
-            days: Количество дней для анализа
-
-        Returns:
-            Dict[str, Any]: Результаты анализа
         """
         try:
             # Сохраняем параметры в память
@@ -417,27 +410,37 @@ class TradingAgent:
 
             # Этап 1: Анализ блочных сделок
             self.state = AgentState.BLOCK_TRADES_ANALYSIS
-            block_trades_results = self.block_trades_analyzer.analyze(currency, days) or {}
+            block_trades_results = self.block_trades_analyzer.analyze(currency, days)
+            if block_trades_results is None:
+                block_trades_results = {'status': 'error', 'message': 'Ошибка анализа блочных сделок'}
             self.memory.update_context({'block_trades_analysis': block_trades_results})
 
             # Этап 2: Фундаментальный анализ
             self.state = AgentState.FUNDAMENTAL_ANALYSIS
-            fundamental_results = self.fundamental_analyzer.analyze(currency, days) or {}
+            fundamental_results = self.fundamental_analyzer.analyze(currency, days)
+            if fundamental_results is None:
+                fundamental_results = {'status': 'error', 'message': 'Ошибка фундаментального анализа'}
             self.memory.update_context({'fundamental_analysis': fundamental_results})
 
             # Этап 3: Технический анализ
             self.state = AgentState.TECHNICAL_ANALYSIS
-            technical_results = self.technical_analyzer.analyze(currency, days) or {}
+            technical_results = self.technical_analyzer.analyze(currency, days)
+            if technical_results is None:
+                technical_results = {'status': 'error', 'message': 'Ошибка технического анализа'}
             self.memory.update_context({'technical_analysis': technical_results})
 
             # Этап 4: Риск-менеджмент
             self.state = AgentState.RISK_MANAGEMENT
-            risk_results = self.risk_management_analyzer.analyze(currency, days) or {}
+            risk_results = self.risk_management_analyzer.analyze(currency, days)
+            if risk_results is None:
+                risk_results = {'status': 'error', 'message': 'Ошибка анализа рисков'}
             self.memory.update_context({'risk_management': risk_results})
 
             # Этап 5: Формирование рекомендаций и отчета
             self.state = AgentState.RECOMMENDATIONS
-            recommendations_results = self.recommendation_generator.generate(currency, days) or {}
+            recommendations_results = self.recommendation_generator.generate(currency, days)
+            if recommendations_results is None:
+                recommendations_results = {'status': 'error', 'message': 'Ошибка генерации рекомендаций'}
             self.memory.update_context({'recommendations': recommendations_results})
 
             return recommendations_results

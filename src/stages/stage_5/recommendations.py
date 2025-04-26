@@ -176,7 +176,7 @@ class RecommendationGenerator:
 
         # Крупнейшие сделки
         largest_trades = []
-        for trade in block_trades.get('strategy_analysis', {}).get('stats', {}).get('largest_trades', [])[:5]:
+        for trade in block_trades.get('strategy_analysis', {}).get('stats', {}).get('largest_trades', [])[:15]:
             largest_trades.append({
                 'type': trade.get('type', 'Unknown'),
                 'amount': trade.get('amount', 0),
