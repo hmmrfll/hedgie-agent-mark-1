@@ -25,7 +25,7 @@ class ToolKit:
         # Инициализация всех инструментов
         self.db_connector = DatabaseConnector(
             host="195.54.178.243",
-            port=5433,
+            port=25494,
             database="deribit_trades",
             user="admin",
             password="admin123"
