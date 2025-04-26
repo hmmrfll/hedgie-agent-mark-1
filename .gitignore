@@ -25,6 +25,7 @@ wheels/
 venv/
 ENV/
 
+reports/*
 # IDE
 .idea/
 .vscode/
