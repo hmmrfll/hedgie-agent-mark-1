@@ -112,7 +112,7 @@ class TelegramNotifier:
             report += "\n<b>💼 КРУПНЕЙШИЕ СДЕЛКИ:</b>\n"
             largest_trades = analysis_data.get('largest_trades', [])
             if largest_trades:
-                for i, trade in enumerate(largest_trades[:5], 1):
+                for i, trade in enumerate(largest_trades[:15], 1):
                     trade_type = trade.get('type', 'Неизвестно')
                     trade_amount = trade.get('amount', 0)
                     trade_id = trade.get('trade_id', 'Н/Д')

@@ -15,11 +15,11 @@ CHOOSING_CURRENCY, CHOOSING_DAYS, PROCESSING = range(3)
 
 class TelegramBot:
     """Интерактивный Telegram бот для торгового агента"""
-    
+
     def __init__(self, token: str, allowed_user_ids: List[int] = None):
         """
         Инициализация бота
-        
+
         Args:
             token (str): Токен Telegram бота
             allowed_user_ids (List[int], optional): Список ID пользователей, которым разрешено использовать бота
@@ -28,17 +28,17 @@ class TelegramBot:
         self.allowed_user_ids = allowed_user_ids or []
         self.is_running = False
         self.agent = None  # Ссылка на торгового агента, будет установлена позже
-        
+
         # Создаем приложение бота
         self.application = Application.builder().token(token).build()
-        
+
         # Регистрируем обработчики
         self._register_handlers()
-    
+
     def set_agent(self, agent):
         """Устанавливает ссылку на торгового агента"""
         self.agent = agent
-    
+
     def _register_handlers(self):
         """Регистрация обработчиков команд и сообщений"""
         # Основные команды
@@ -47,7 +47,7 @@ class TelegramBot:
         self.application.add_handler(CommandHandler("analyze", self._analyze_command))
         self.application.add_handler(CommandHandler("status", self._status_command))
         self.application.add_handler(CommandHandler("settings", self._settings_command))
-        
+
         # Обработчики разговоров для анализа
         conv_handler = ConversationHandler(
             entry_points=[CommandHandler("analyze", self._analyze_command)],
@@ -58,25 +58,25 @@ class TelegramBot:
             fallbacks=[CommandHandler("cancel", self._cancel_command)],
         )
         self.application.add_handler(conv_handler)
-        
+
         # Обработчик callback кнопок
         self.application.add_handler(CallbackQueryHandler(self._button_callback))
-        
+
         # Обработчик обычных сообщений
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message))
-        
+
         # Обработчик ошибок
         self.application.add_error_handler(self._error_handler)
-    
+
     async def _start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка команды /start"""
         user_id = update.effective_user.id
-        
+
         # Проверка авторизации, если указан список разрешенных пользователей
         if self.allowed_user_ids and user_id not in self.allowed_user_ids:
             await update.message.reply_text("⛔ Извините, у вас нет доступа к этому боту.")
             return
-        
+
         # Приветственное сообщение
         welcome_text = (
             f"👋 <b>Здравствуйте, {update.effective_user.first_name}!</b>\n\n"
@@ -88,16 +88,16 @@ class TelegramBot:
             "• Оценка рисков и рекомендации\n\n"
             "Используйте /analyze для начала нового анализа или /help для справки."
         )
-        
+
         # Создаем клавиатуру с основными действиями
         keyboard = [
             [InlineKeyboardButton("📊 Новый анализ", callback_data="new_analysis")],
             [InlineKeyboardButton("❓ Помощь", callback_data="help")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode=ParseMode.HTML)
-    
+
     async def _help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка команды /help"""
         help_text = (
@@ -117,9 +117,9 @@ class TelegramBot:
             "- \"Объясни сигнал RSI\"\n"
             "- \"Что означает перевес CALL опционов?\""
         )
-        
+
         await update.message.reply_text(help_text, parse_mode=ParseMode.HTML)
-    
+
     async def _analyze_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Запуск процесса анализа"""
         # Проверка авторизации
@@ -127,7 +127,7 @@ class TelegramBot:
         if self.allowed_user_ids and user_id not in self.allowed_user_ids:
             await update.message.reply_text("⛔ Извините, у вас нет доступа к этому боту.")
             return ConversationHandler.END
-        
+
         # Создаем клавиатуру для выбора валюты
         keyboard = [
             [
@@ -137,28 +137,28 @@ class TelegramBot:
             [InlineKeyboardButton("❌ Отмена", callback_data="cancel")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await update.message.reply_text(
-            "🪙 <b>Выберите валюту для анализа:</b>", 
+            "🪙 <b>Выберите валюту для анализа:</b>",
             reply_markup=reply_markup,
             parse_mode=ParseMode.HTML
         )
-        
+
         return CHOOSING_CURRENCY
-    
+
     async def _handle_currency(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка выбора валюты"""
         currency = update.message.text.upper()
-        
+
         if currency not in ['BTC', 'ETH']:
             await update.message.reply_text(
                 "❌ Неподдерживаемая валюта. Пожалуйста, введите BTC или ETH."
             )
             return CHOOSING_CURRENCY
-        
+
         # Сохраняем валюту в контексте
         context.user_data['currency'] = currency
-        
+
         # Создаем клавиатуру для выбора периода
         keyboard = [
             [
@@ -172,82 +172,82 @@ class TelegramBot:
             [InlineKeyboardButton("❌ Отмена", callback_data="cancel")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await update.message.reply_text(
             "📅 <b>Выберите период для анализа (14-365 дней):</b>",
             reply_markup=reply_markup,
             parse_mode=ParseMode.HTML
         )
-        
+
         return CHOOSING_DAYS
-    
+
     async def _handle_days(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка выбора количества дней"""
         try:
             days = int(update.message.text)
-            
+
             if not 14 <= days <= 365:
                 await update.message.reply_text(
                     "❌ Количество дней должно быть от 14 до 365. Попробуйте снова."
                 )
                 return CHOOSING_DAYS
-                
+
             # Сохраняем количество дней в контексте
             context.user_data['days'] = days
-            
+
             # Запускаем анализ
             await self._start_analysis(update, context)
-            
+
             return ConversationHandler.END
-            
+
         except ValueError:
             await update.message.reply_text(
                 "❌ Пожалуйста, введите число от 14 до 365."
             )
             return CHOOSING_DAYS
-    
+
     async def _start_analysis(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Запуск процесса анализа"""
         currency = context.user_data.get('currency')
         days = context.user_data.get('days')
-        
+
         if not currency or not days:
             await update.message.reply_text("❌ Ошибка: не указаны параметры анализа.")
             return
-        
+
         await update.message.reply_text(
             f"🔄 <b>Начинаю анализ {currency} за последние {days} дней...</b>\n\n"
             "Это может занять некоторое время. Вы получите уведомление, когда анализ будет завершен.",
             parse_mode=ParseMode.HTML
         )
-        
+
         # Запускаем анализ в отдельном потоке, чтобы не блокировать бота
         threading.Thread(
             target=self._run_analysis_thread,
             args=(update.effective_chat.id, currency, days)
         ).start()
-    
+
     def _run_analysis_thread(self, chat_id, currency, days):
         """Выполнение анализа в отдельном потоке"""
         try:
             if not self.agent:
                 self._send_message(chat_id, "❌ Ошибка: агент не инициализирован.")
                 return
-                    
+
             # Вызываем метод анализа из агента
             results = self.agent.process_trades_for_telegram(currency, days)
-            
+
             # Отправляем результаты анализа
             if results and results.get('status') == 'success':
                 self._send_message(
-                    chat_id, 
+                    chat_id,
                     "✅ <b>Анализ успешно завершен!</b>\n\nОтправляю результаты...",
                     parse_mode=ParseMode.HTML
                 )
-                
+
                 # Отправляем отчет
                 self._send_analysis_report(chat_id, results.get('recommendations', {}))
-                
+
                 # Добавим подсказку о возможности задать вопросы
                 self._send_message(
                     chat_id,
@@ -261,16 +261,16 @@ class TelegramBot:
                 )
             else:
                 self._send_message(
-                    chat_id, 
+                    chat_id,
                     "❌ Ошибка при выполнении анализа. Пожалуйста, попробуйте позже."
                 )
         except Exception as e:
             logger.error(f"Ошибка в потоке анализа: {e}")
             self._send_message(
-                chat_id, 
+                chat_id,
                 f"❌ Произошла ошибка при анализе: {str(e)}"
             )
-    
+
     async def _cancel_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Отмена текущей операции"""
         context.user_data.clear()
@@ -278,23 +278,23 @@ class TelegramBot:
             "✅ Операция отменена. Используйте /analyze для начала нового анализа."
         )
         return ConversationHandler.END
-    
+
     async def _button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка нажатий на кнопки"""
         query = update.callback_query
         await query.answer()
-        
+
         callback_data = query.data
-        
+
         if callback_data == "new_analysis":
             # Перенаправляем на команду analyze
             await self._analyze_command(update, context)
-            
+
         elif callback_data == "help":
             # Показываем справку
             await query.edit_message_text(text="Переход к справке...")
             await self._help_command(update, context)
-            
+
         elif callback_data == "cancel":
             # Отменяем текущую операцию
             context.user_data.clear()
@@ -302,12 +302,12 @@ class TelegramBot:
                 text="✅ Операция отменена. Используйте /analyze для начала нового анализа."
             )
             return ConversationHandler.END
-            
+
         elif callback_data.startswith("currency_"):
             # Обработка выбора валюты через кнопку
             currency = callback_data.split("_")[1]
             context.user_data['currency'] = currency
-            
+
             # Создаем клавиатуру для выбора периода
             keyboard = [
                 [
@@ -321,55 +321,55 @@ class TelegramBot:
                 [InlineKeyboardButton("❌ Отмена", callback_data="cancel")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            
+
             await query.edit_message_text(
                 text=f"Выбрана валюта: {currency}\n\n📅 <b>Выберите период для анализа:</b>",
                 reply_markup=reply_markup,
                 parse_mode=ParseMode.HTML
             )
-            
+
             return CHOOSING_DAYS
-            
+
         elif callback_data.startswith("days_"):
             # Обработка выбора дней через кнопку
             days = int(callback_data.split("_")[1])
             context.user_data['days'] = days
-            
+
             # Запускаем анализ
             await query.edit_message_text(
                 text=f"🔄 <b>Начинаю анализ {context.user_data.get('currency')} за последние {days} дней...</b>\n\n"
                 "Это может занять некоторое время. Вы получите уведомление, когда анализ будет завершен.",
                 parse_mode=ParseMode.HTML
             )
-            
+
             # Запускаем анализ в отдельном потоке
             threading.Thread(
                 target=self._run_analysis_thread,
                 args=(update.effective_chat.id, context.user_data.get('currency'), days)
             ).start()
-            
+
             return ConversationHandler.END
-    
+
     async def _status_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Информация о статусе агента"""
         if not self.agent:
             await update.message.reply_text("❌ Агент не инициализирован.")
             return
-            
+
         state = self.agent.state
-        
+
         status_text = (
             f"<b>📊 Статус агента:</b>\n\n"
             f"• Текущее состояние: {state}\n"
         )
-        
+
         # Добавляем информацию о последнем анализе, если есть
         memory = self.agent.memory.get_context()
         if memory:
             currency = memory.get('currency')
             days = memory.get('days')
             timestamp = memory.get('timestamp')
-            
+
             if currency and days and timestamp:
                 status_text += (
                     f"\n<b>Последний анализ:</b>\n"
@@ -377,16 +377,16 @@ class TelegramBot:
                     f"• Период: {days} дней\n"
                     f"• Время выполнения: {timestamp}\n"
                 )
-        
+
         await update.message.reply_text(status_text, parse_mode=ParseMode.HTML)
-    
+
     async def _settings_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Настройки пользователя"""
         settings_text = (
             "<b>⚙️ Настройки агента:</b>\n\n"
             "Здесь вы можете настроить параметры анализа:"
         )
-        
+
         # Создаем клавиатуру с настройками
         keyboard = [
             [InlineKeyboardButton("🔍 Уровень детализации", callback_data="settings_detail")],
@@ -394,17 +394,17 @@ class TelegramBot:
             [InlineKeyboardButton("🔔 Уведомления", callback_data="settings_notifications")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await update.message.reply_text(
-            settings_text, 
+            settings_text,
             reply_markup=reply_markup,
             parse_mode=ParseMode.HTML
         )
-    
+
     async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка обычных текстовых сообщений и вопросов"""
         message_text = update.message.text.lower()
-        
+
         # Простая система ответов на вопросы для базовых тем
         if "опционн" in message_text and "стратег" in message_text:
             await self._explain_option_strategies(update, context)
@@ -421,7 +421,7 @@ class TelegramBot:
                 memory = self.agent.memory.get_context()
                 if 'recommendations' in memory and 'recommendations' in memory['recommendations']:
                     analysis_data = memory['recommendations']['recommendations']
-            
+
             # Если нет данных анализа, сообщаем пользователю
             if not analysis_data:
                 await update.message.reply_text(
@@ -429,18 +429,18 @@ class TelegramBot:
                     "Пожалуйста, сначала выполните анализ с помощью команды /analyze."
                 )
                 return
-            
+
             # Отправляем индикатор печати, чтобы показать, что обрабатываем вопрос
             await update.message.chat.send_action(action="typing")
-            
+
             # Получаем ответ от Ollama в отдельном потоке
             def get_ollama_answer():
                 return self.agent.tools.ask_ollama(update.message.text, analysis_data)
-            
+
             # Запускаем в отдельном потоке, чтобы не блокировать бота
             loop = asyncio.get_event_loop()
             answer = await loop.run_in_executor(None, get_ollama_answer)
-            
+
             # Отправляем ответ
             await update.message.reply_text(answer)
 
@@ -456,9 +456,9 @@ class TelegramBot:
             "• <b>Iron Condor</b> - Комбинация спредов. Прибыльна при движении цены в определённом диапазоне.\n\n"
             "<b>Интерпретация:</b> Преобладание определенных стратегий указывает на настроение крупных игроков. Например, большой объем Call Spread говорит об умеренно бычьих ожиданиях."
         )
-        
+
         await update.message.reply_text(strategies_text, parse_mode=ParseMode.HTML)
-    
+
     async def _explain_call_dominance(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Объяснение преобладания CALL опционов"""
         call_text = (
@@ -470,9 +470,9 @@ class TelegramBot:
             "• Высокий CALL/PUT ratio (>1.5) часто сигнализирует о избыточном оптимизме\n\n"
             "<b>Контекст важен:</b> Необходимо анализировать также дельту позиций, распределение страйков и сроки экспирации для полной картины."
         )
-        
+
         await update.message.reply_text(call_text, parse_mode=ParseMode.HTML)
-    
+
     async def _explain_rsi(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Объяснение индикатора RSI"""
         rsi_text = (
@@ -488,9 +488,9 @@ class TelegramBot:
             "• Формирование паттернов на самом RSI\n\n"
             "Важно анализировать RSI в контексте других индикаторов и общего тренда рынка."
         )
-        
+
         await update.message.reply_text(rsi_text, parse_mode=ParseMode.HTML)
-    
+
     async def _explain_risk(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Объяснение оценки рисков"""
         risk_text = (
@@ -506,20 +506,20 @@ class TelegramBot:
             "• Соотношение риск/прибыль (R/R) должно быть не менее 1:2 для благоприятной торговли\n\n"
             "Помните: никакой анализ не даёт 100% гарантии, всегда рискуйте только тем, что готовы потерять."
         )
-        
+
         await update.message.reply_text(risk_text, parse_mode=ParseMode.HTML)
-    
+
     async def _error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработчик ошибок"""
         logger.error(f"Ошибка при обработке запроса: {context.error}")
-    
+
     def _send_message(self, chat_id, text, parse_mode=None):
         """Синхронный метод для отправки сообщения из потока"""
         if parse_mode is None:
             parse_mode = ParseMode.HTML
-            
+
         asyncio.run(self._send_message_async(chat_id, text, parse_mode))
-    
+
     async def _send_message_async(self, chat_id, text, parse_mode=None):
         """Асинхронная отправка сообщения"""
         bot = Bot(token=self.token)
@@ -527,7 +527,7 @@ class TelegramBot:
             await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
         except Exception as e:
             logger.error(f"Ошибка отправки сообщения: {e}")
-    
+
     def _send_analysis_report(self, chat_id, analysis_data):
         """Отправка результатов анализа"""
         try:
@@ -536,29 +536,29 @@ class TelegramBot:
             current_price = analysis_data.get('current_price', '0')
             recommendation = analysis_data.get('recommendation', 'Н/Д')
             risk_level = analysis_data.get('risk_level', 'Н/Д')
-            
+
             # Заголовок отчета
             report = f"<b>🔍 ОПЦИОННЫЙ АНАЛИЗ: {currency} ${current_price}</b>\n\n"
-            
+
             # ======= БЛОК ОПЦИОНОВ (РАСШИРЕННЫЙ) =======
             report += "<b>🔄 АНАЛИЗ ОПЦИОНОВ И БЛОЧНЫХ СДЕЛОК:</b>\n"
-            
+
             # Общая статистика опционов
             calls_count = analysis_data.get('calls_count', 'Н/Д')
             puts_count = analysis_data.get('puts_count', 'Н/Д')
             call_volume = analysis_data.get('call_volume', 'Н/Д')
             put_volume = analysis_data.get('put_volume', 'Н/Д')
             call_put_ratio = analysis_data.get('call_put_ratio', 'Н/Д')
-            
+
             report += f"• Всего сделок: <b>{analysis_data.get('total_trades', 'Н/Д')}</b>\n"
             report += f"• CALL опционов: <b>{calls_count}</b> (объем {call_volume})\n"
             report += f"• PUT опционов: <b>{puts_count}</b> (объем {put_volume})\n"
             report += f"• Соотношение CALL/PUT: <b>{call_put_ratio}</b>\n"
             report += f"• Общая дельта: <b>{analysis_data.get('total_delta', 'Н/Д')}</b> 🔑\n\n"
-            
+
             # Отправляем первую часть отчета
             self._send_message(chat_id, report)
-            
+
             # Создаем и отправляем вторую часть - стратегии
             report2 = "<b>📊 РАСПРЕДЕЛЕНИЕ ОПЦИОННЫХ СТРАТЕГИЙ:</b>\n"
             strategies_data = analysis_data.get('strategies_data', {})
@@ -569,45 +569,45 @@ class TelegramBot:
                     report2 += f"• <b>{strategy}</b>: {volume:.2f} ({percentage:.1f}%)\n"
             else:
                 report2 += "• Данные о стратегиях недоступны\n"
-                
+
             # Крупнейшие сделки
             report2 += "\n<b>💼 КРУПНЕЙШИЕ СДЕЛКИ:</b>\n"
             largest_trades = analysis_data.get('largest_trades', [])
             if largest_trades:
-                for i, trade in enumerate(largest_trades[:5], 1):
+                for i, trade in enumerate(largest_trades[:15], 1):
                     trade_type = trade.get('type', 'Неизвестно')
                     trade_amount = trade.get('amount', 0)
                     trade_id = trade.get('trade_id', 'Н/Д')
                     report2 += f"• #{i}: <b>{trade_type}</b> - объем {trade_amount:.2f} (ID: {trade_id})\n"
             else:
                 report2 += "• Данные о крупных сделках недоступны\n"
-            
+
             # Основной сигнал от опционов
             option_sentiment = analysis_data.get('option_sentiment', 'нейтральное')
             report2 += f"\n<b>📣 СИГНАЛ ПО ОПЦИОНАМ:</b> <u>{option_sentiment}</u>\n"
-            
+
             # Отправляем вторую часть
             self._send_message(chat_id, report2)
-            
+
             # Создаем и отправляем третью часть - общая рекомендация
             report3 = f"<b>🎯 ОБЩАЯ РЕКОМЕНДАЦИЯ: {recommendation}</b>\n"
             report3 += f"<b>⚠️ Уровень риска:</b> {risk_level}\n\n"
-            
+
             # Технический анализ
             report3 += "<b>📈 Технический анализ:</b>\n"
             report3 += f"• Тренд: {analysis_data.get('trend', 'Н/Д')}\n"
             report3 += f"• RSI: {analysis_data.get('rsi_value', 'Н/Д')} ({analysis_data.get('rsi_signal', 'Н/Д')})\n"
             report3 += f"• Сигнал: {analysis_data.get('technical_signal', 'Н/Д')}\n\n"
-            
+
             # Риск-менеджмент
             report3 += "<b>🛡️ Риск-менеджмент:</b>\n"
             report3 += f"• Размер позиции: {analysis_data.get('position_size', 'Н/Д')}% капитала\n"
             report3 += f"• Стоп-лосс: ${analysis_data.get('stop_loss_price', 'Н/Д')} ({analysis_data.get('stop_loss_percent', 'Н/Д')}%)\n"
             report3 += f"• Тейк-профит: ${analysis_data.get('take_profit_price', 'Н/Д')} ({analysis_data.get('take_profit_percent', 'Н/Д')}%)\n"
-            
+
             # Отправляем третью часть
             self._send_message(chat_id, report3)
-            
+
             # Отправляем заключение отдельным сообщением
             conclusion = analysis_data.get('conclusion', '')
             if conclusion:
@@ -615,9 +615,9 @@ class TelegramBot:
                 # Обрезаем сообщение, если оно слишком длинное
                 if len(conclusion_msg) > 4000:
                     conclusion_msg = conclusion_msg[:3997] + "..."
-                
+
                 self._send_message(chat_id, conclusion_msg)
-            
+
             # Отправляем сообщение с предложением задать вопросы
             self._send_message(
                 chat_id,
@@ -629,16 +629,16 @@ class TelegramBot:
                 "• Что означает этот уровень риска?\n\n"
                 "Используйте /analyze для нового анализа."
             )
-            
+
             return True
         except Exception as e:
             logger.error(f"Ошибка отправки отчета: {e}")
             self._send_message(
-                chat_id, 
+                chat_id,
                 f"❌ Ошибка при формировании отчета: {str(e)}"
             )
             return False
-    
+
     def start(self):
         """Запуск бота"""
         if not self.is_running:
@@ -648,11 +648,11 @@ class TelegramBot:
                 daemon=True
             ).start()
             self.is_running = True
-    
+
     def _run_bot(self):
         """Запуск бота в отдельном потоке"""
         self.application.run_polling()
-    
+
     def stop(self):
         """Остановка бота"""
         if self.is_running:
